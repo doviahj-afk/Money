@@ -22,12 +22,51 @@ jobs:
         with:
           gradle-version: '8.5'
 
+      # FIX: the plugins {} block in build.gradle had no version numbers.
+      # Without the Gradle wrapper (which pins AGP/Kotlin via a version
+      # catalog), a bare `gradle` install has no way to resolve
+      # 'com.android.application' or 'org.jetbrains.kotlin.android'.
+      # This step patches the file in-place, only if versions are missing,
+      # so it's safe to run on every build.
+      - name: Patch build.gradle plugin versions
+        run: |
+          BUILD_FILE=$(find . -maxdepth 3 -name "build.gradle" | grep -v "/app/" | head -n 1)
+          if [ -z "$BUILD_FILE" ]; then
+            BUILD_FILE=$(find . -maxdepth 3 -name "build.gradle" | head -n 1)
+          fi
+          echo "Patching: $BUILD_FILE"
+
+          if ! grep -q "com.android.application' version" "$BUILD_FILE"; then
+            sed -i "s/id 'com.android.application'/id 'com.android.application' version '8.5.2'/" "$BUILD_FILE"
+          fi
+
+          if ! grep -q "org.jetbrains.kotlin.android' version" "$BUILD_FILE"; then
+            sed -i "s/id 'org.jetbrains.kotlin.android'/id 'org.jetbrains.kotlin.android' version '1.9.24'/" "$BUILD_FILE"
+          fi
+
+          echo "--- Resulting plugins block ---"
+          grep -A 3 "plugins {" "$BUILD_FILE"
+
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: gradle assembleDebug --stacktrace
+
+      # FIX: locate the APK dynamically instead of hardcoding
+      # app/build/outputs/apk/debug/app-debug.apk, in case the module
+      # layout differs (root-level project vs an app/ submodule).
+      - name: Locate built APK
+        id: locate_apk
+        run: |
+          APK_PATH=$(find . -name "*-debug.apk" -path "*/outputs/apk/debug/*" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "No debug APK found!"
+            find . -name "*.apk"
+            exit 1
+          fi
+          echo "Found APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: sysdownloader-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          
+          path: ${{ steps.locate_apk.outputs.apk_path }}
