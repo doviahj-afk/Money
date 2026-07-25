@@ -1,6 +1,6 @@
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
+    id 'com.android.application' version '8.5.2'
+    id 'org.jetbrains.kotlin.android' version '1.9.24'
 }
 
 android {
@@ -43,8 +43,9 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 
     // yt-dlp for Android (bundles yt-dlp + python runtime via Chaquopy)
-    implementation 'com.github.yausername.youtubedl-android:library:0.17.3'
-    implementation 'com.github.yausername.youtubedl-android:ffmpeg:0.17.3'
+    // Updated to Maven Central - old JitPack coordinates no longer resolve
+    implementation 'io.github.junkfood02.youtubedl-android:library:0.18.1'
+    implementation 'io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1'
 
     // Unity Ads
     implementation 'com.unity3d.ads:unity-ads:4.12.2'
