@@ -20,7 +20,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.5'
+          gradle-version: '8.7'
 
       # FIX: the plugins {} block in build.gradle had no version numbers.
       # Without the Gradle wrapper (which pins AGP/Kotlin via a version
@@ -28,6 +28,7 @@ jobs:
       # 'com.android.application' or 'org.jetbrains.kotlin.android'.
       # This step patches the file in-place, only if versions are missing,
       # so it's safe to run on every build.
+      # NOTE: AGP 8.5.2 requires Gradle 8.7+ (see setup-gradle step above).
       - name: Patch build.gradle plugin versions
         run: |
           BUILD_FILE=$(find . -maxdepth 3 -name "build.gradle" | grep -v "/app/" | head -n 1)
