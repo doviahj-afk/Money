@@ -48,6 +48,24 @@ jobs:
           echo "--- Resulting plugins block ---"
           grep -A 3 "plugins {" "$BUILD_FILE"
 
+      # FIX: com.github.yausername.youtubedl-android (JitPack) no longer
+      # resolves at version 0.17.3 — the project moved to Maven Central
+      # under a new group id. Swap the old coordinates for the current
+      # published ones. Safe to leave permanently; no-ops once already patched.
+      - name: Patch yt-dlp dependency coordinates
+        run: |
+          BUILD_FILE=$(find . -maxdepth 3 -name "build.gradle" | grep -v "/app/" | head -n 1)
+          if [ -z "$BUILD_FILE" ]; then
+            BUILD_FILE=$(find . -maxdepth 3 -name "build.gradle" | head -n 1)
+          fi
+          echo "Patching: $BUILD_FILE"
+
+          sed -i "s#com\.github\.yausername\.youtubedl-android:library:[0-9.]*#io.github.junkfood02.youtubedl-android:library:0.18.1#" "$BUILD_FILE"
+          sed -i "s#com\.github\.yausername\.youtubedl-android:ffmpeg:[0-9.]*#io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1#" "$BUILD_FILE"
+
+          echo "--- Resulting yt-dlp dependency lines ---"
+          grep "youtubedl-android" "$BUILD_FILE" || echo "(none found — check dependency block)"
+
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
 
