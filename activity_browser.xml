@@ -17,7 +17,7 @@
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="<"
+            android:text="&lt;"
             android:minWidth="0dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
