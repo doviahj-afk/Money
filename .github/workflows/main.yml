@@ -11,6 +11,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # FIX: this repo has AndroidManifest.xml, *.kt, layout/value xml files
+      # sitting flat at the project root instead of the standard Android
+      # Gradle layout (src/main/AndroidManifest.xml, src/main/java/...,
+      # src/main/res/layout, src/main/res/values). Without this, Gradle
+      # can't find the manifest, sources, or resources at all.
+      # This arranges them into place before anything else runs.
+      # Safe to leave in permanently — files are only moved if found at root.
+      - name: Arrange Android project structure
+        run: |
+          set -e
+          mkdir -p src/main/java/com/sysdownloader/app
+          mkdir -p src/main/res/layout
+          mkdir -p src/main/res/values
+
+          [ -f AndroidManifest.xml ] && mv AndroidManifest.xml src/main/AndroidManifest.xml
+
+          for f in MainActivity.kt BrowserActivity.kt; do
+            [ -f "$f" ] && mv "$f" src/main/java/com/sysdownloader/app/
+          done
+
+          for f in activity_main.xml activity_browser.xml; do
+            [ -f "$f" ] && mv "$f" src/main/res/layout/
+          done
+
+          for f in strings.xml colors.xml themes.xml; do
+            [ -f "$f" ] && mv "$f" src/main/res/values/
+          done
+
+          echo "--- Resulting src/ tree ---"
+          find src -type f
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
